@@ -6,6 +6,13 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from sqlalchemy.future import select
 from db import async_session, Player
 
+from fastapi import FastAPI
+import uvicorn
+
+# Создаём FastAPI-приложение для Timeweb
+api = FastAPI()
+
+# Telegram Bot config
 TOKEN = "твой_токен"
 
 bot = Bot(token=TOKEN, parse_mode=ParseMode.HTML)
@@ -60,9 +67,16 @@ async def handle_webapp_data(message: types.Message):
 
 dp.include_router(router)
 
-async def main():
-    await dp.start_polling(bot)
+# Стартуем бота через FastAPI (не напрямую через asyncio.run)
+@api.on_event("startup")
+async def on_startup():
+    asyncio.create_task(dp.start_polling(bot))
 
-if __name__ == "__main__":
-    asyncio.run(main())
+# Тестовая страница (необязательно)
+@api.get("/")
+async def index():
+    return {"status": "Bot is running on Timeweb Cloud 🚀"}
+
+
+
 
